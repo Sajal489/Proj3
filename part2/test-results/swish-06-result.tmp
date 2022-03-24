@@ -1,0 +1,46 @@
+* (TEST 6) Three-Element Pipeline With Input and Output Redirection
+COMMENTS:
+Runs a pipeline consisting of three programs. The first program has its input
+redirected from a file and the last program has its output redirected to a file.
+
+** program: bash -v
+
+** --- Failure messages --- 
+- FAILURE: Output Mismatch at lines marked
+
+** --- Side by Side Differences ---
+- Expect output in: test-results/raw/swish-06-expect.tmp
+- Actual output in: test-results/raw/swish-06-actual.tmp
+- Differing lines have a character like '|' '>' or '<' in the middle
+#+BEGIN_SRC sbs-diff
+==== EXPECT ====                                                   ==== ACTUAL ====                                                
+>> cat test_commands/6.txt | ./run_terminal_session | dos2unix     >> cat test_commands/6.txt | ./run_terminal_session | dos2unix
+@> cat  < test_data/numbers.txt | sort -n | head -n 10 > out.txt   @> cat  < test_data/numbers.txt | sort -n | head -n 10 > out.txt
+@> exit                                                            @> exit
+>> cat out.txt                                                     >> cat out.txt
+3                                                                | cat: out.txt: No such file or directory
+3                                                                <
+7                                                                <
+7                                                                <
+7                                                                <
+26                                                               <
+34                                                               <
+36                                                               <
+38                                                               <
+44                                                               <
+>> rm -f out.txt                                                   >> rm -f out.txt
+#+END_SRC
+
+** --- Line Differences ---
+EXPECT:   5) 3
+EXPECT:   6) 3
+EXPECT:   7) 7
+EXPECT:   8) 7
+EXPECT:   9) 7
+EXPECT:  10) 26
+EXPECT:  11) 34
+EXPECT:  12) 36
+EXPECT:  13) 38
+EXPECT:  14) 44
+ACTUAL:   5) cat: out.txt: No such file or directory
+

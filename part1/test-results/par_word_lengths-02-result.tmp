@@ -1,0 +1,95 @@
+* (TEST 2) Empty Input File
+COMMENTS:
+Count word lengths in a single, empty file
+
+** program: bash -v
+
+** --- Failure messages --- 
+- FAILURE: Output Mismatch at lines marked
+
+** --- Side by Side Differences ---
+- Expect output in: test-results/raw/par_word_lengths-02-expect.tmp
+- Actual output in: test-results/raw/par_word_lengths-02-actual.tmp
+- Differing lines have a character like '|' '>' or '<' in the middle
+#+BEGIN_SRC sbs-diff
+==== EXPECT ====                                                                ==== ACTUAL ====                                                             
+>> ./par_word_lengths test_files/empty.txt 2>&1 | grep -E '^[0-9]+-Character'   >> ./par_word_lengths test_files/empty.txt 2>&1 | grep -E '^[0-9]+-Character'
+1-Character Words: 0                                                          | 1-Character Words: -1
+2-Character Words: 0                                                          | 2-Character Words: -1
+3-Character Words: 0                                                          | 3-Character Words: -1
+4-Character Words: 0                                                          | 4-Character Words: -1
+5-Character Words: 0                                                          | 5-Character Words: -1
+6-Character Words: 0                                                          | 6-Character Words: -1
+7-Character Words: 0                                                          | 7-Character Words: -1
+8-Character Words: 0                                                          | 8-Character Words: -1
+9-Character Words: 0                                                          | 9-Character Words: -1
+10-Character Words: 0                                                         | 10-Character Words: -1
+11-Character Words: 0                                                         | 11-Character Words: -1
+12-Character Words: 0                                                         | 12-Character Words: -1
+13-Character Words: 0                                                         | 13-Character Words: -1
+14-Character Words: 0                                                         | 14-Character Words: -1
+15-Character Words: 0                                                         | 15-Character Words: -1
+16-Character Words: 0                                                         | 16-Character Words: -1
+17-Character Words: 0                                                         | 17-Character Words: -1
+18-Character Words: 0                                                         | 18-Character Words: -1
+19-Character Words: 0                                                         | 19-Character Words: -1
+20-Character Words: 0                                                         | 20-Character Words: -1
+21-Character Words: 0                                                         | 21-Character Words: -1
+22-Character Words: 0                                                         | 22-Character Words: -1
+23-Character Words: 0                                                         | 23-Character Words: -1
+24-Character Words: 0                                                         | 24-Character Words: -1
+25-Character Words: 0                                                         | 25-Character Words: -1
+#+END_SRC
+
+** --- Line Differences ---
+EXPECT:   2) 1-Character Words: 0
+EXPECT:   3) 2-Character Words: 0
+EXPECT:   4) 3-Character Words: 0
+EXPECT:   5) 4-Character Words: 0
+EXPECT:   6) 5-Character Words: 0
+EXPECT:   7) 6-Character Words: 0
+EXPECT:   8) 7-Character Words: 0
+EXPECT:   9) 8-Character Words: 0
+EXPECT:  10) 9-Character Words: 0
+EXPECT:  11) 10-Character Words: 0
+EXPECT:  12) 11-Character Words: 0
+EXPECT:  13) 12-Character Words: 0
+EXPECT:  14) 13-Character Words: 0
+EXPECT:  15) 14-Character Words: 0
+EXPECT:  16) 15-Character Words: 0
+EXPECT:  17) 16-Character Words: 0
+EXPECT:  18) 17-Character Words: 0
+EXPECT:  19) 18-Character Words: 0
+EXPECT:  20) 19-Character Words: 0
+EXPECT:  21) 20-Character Words: 0
+EXPECT:  22) 21-Character Words: 0
+EXPECT:  23) 22-Character Words: 0
+EXPECT:  24) 23-Character Words: 0
+EXPECT:  25) 24-Character Words: 0
+EXPECT:  26) 25-Character Words: 0
+ACTUAL:   2) 1-Character Words: -1
+ACTUAL:   3) 2-Character Words: -1
+ACTUAL:   4) 3-Character Words: -1
+ACTUAL:   5) 4-Character Words: -1
+ACTUAL:   6) 5-Character Words: -1
+ACTUAL:   7) 6-Character Words: -1
+ACTUAL:   8) 7-Character Words: -1
+ACTUAL:   9) 8-Character Words: -1
+ACTUAL:  10) 9-Character Words: -1
+ACTUAL:  11) 10-Character Words: -1
+ACTUAL:  12) 11-Character Words: -1
+ACTUAL:  13) 12-Character Words: -1
+ACTUAL:  14) 13-Character Words: -1
+ACTUAL:  15) 14-Character Words: -1
+ACTUAL:  16) 15-Character Words: -1
+ACTUAL:  17) 16-Character Words: -1
+ACTUAL:  18) 17-Character Words: -1
+ACTUAL:  19) 18-Character Words: -1
+ACTUAL:  20) 19-Character Words: -1
+ACTUAL:  21) 20-Character Words: -1
+ACTUAL:  22) 21-Character Words: -1
+ACTUAL:  23) 22-Character Words: -1
+ACTUAL:  24) 23-Character Words: -1
+ACTUAL:  25) 24-Character Words: -1
+ACTUAL:  26) 25-Character Words: -1
+
