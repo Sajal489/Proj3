@@ -1,6 +1,0 @@
->> cat test_commands/10.txt | ./run_terminal_session | dos2unix
-@> tr -cs A-Za-z \n < test_data/gatsby.txt | tr A-Z a-z | sort | uniq -c | sort -rn | head -n 12 > out.txt
-@> exit
->> cat out.txt
-cat: out.txt: No such file or directory
->> rm -f out.txt

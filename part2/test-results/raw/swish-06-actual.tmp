@@ -1,6 +1,0 @@
->> cat test_commands/6.txt | ./run_terminal_session | dos2unix
-@> cat  < test_data/numbers.txt | sort -n | head -n 10 > out.txt
-@> exit
->> cat out.txt
-cat: out.txt: No such file or directory
->> rm -f out.txt
