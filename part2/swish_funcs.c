@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "string_vector.h"
 #include "swish_funcs.h"
@@ -43,10 +44,74 @@ int close_all(int *fds, int n) {
  */
 int run_piped_command(strvec_t *tokens, int *pipes, int n_pipes, int in_idx, int out_idx) {
     // TODO Complete this function's implementation
+    if(out_idx != -1 && in_idx == -1){
+        dup2(pipes[out_idx], STDOUT_FILENO);
+    }else if(out_idx == -1 && in_idx != -1){
+         dup2(pipes[in_idx], STDIN_FILENO);
+    }else if(out_idx != -1 && in_idx != -1){
+        dup2(pipes[out_idx], STDOUT_FILENO);
+        dup2(pipes[in_idx], STDIN_FILENO);
+    }else return 1;
+    run_command(tokens);
     return 0;
 }
 
 int run_pipelined_commands(strvec_t *tokens) {
     // TODO Complete this function's implementation
+    int n_pipes = 0;
+    int index = 0;
+    for(int i = 0; i < tokens->length; i++){
+        if(strcmp(strvec_get(tokens, i), "|") == 0) n_pipes++;
+    }
+
+    strvec_t arr[n_pipes+1];
+    strvec_t *temp = malloc(sizeof(strvec_t));
+    strvec_init(arr);
+    strvec_init(temp);
+
+    for(int i = 0; i < tokens->length; i++){
+        if(strcmp(strvec_get(tokens, i), "|") == 0){
+            arr[index++] = *temp;
+            temp = malloc(sizeof(strvec_t));
+            strvec_init(temp);
+
+        }else{
+            strvec_add(temp, strvec_get(tokens, i));
+        }
+    }
+    arr[index] = *temp;
+
+    int *pipes = malloc(2 * (n_pipes) * sizeof(int));
+
+    for(int i = 0; i < n_pipes; i++){
+        pipe(pipes + 2*i);
+    }
+
+
+    for(int i = 0; i < n_pipes+1; i++){
+        pid_t pid = fork();
+        if(pid == 0){
+            if(i > 0 && i < n_pipes){
+               //i > 0 && i < n_pipes ? 2*(i-1) : i == 0 ? -1 : 2*i
+                run_piped_command(arr + i, pipes, 2*n_pipes, 2*(i-1), 2*i+1);
+            }else if(i == 0){
+                run_piped_command(arr + i, pipes, 2*n_pipes, -1, 2*i+1);
+            }else{
+                run_piped_command(arr + i, pipes, 2*n_pipes, 2*i, -1);
+            }     
+        }else if(pid > 0){
+            //parent
+        }else{
+            perror("failed to fork child");
+            exit(1);
+        }
+    }
+
+      close_all(pipes, 2*n_pipes);
+      int status = 0;
+      for(int i = 0; i < n_pipes+1; i++){
+          wait(&status);
+      }
+      free(pipes);
     return 0;
 }

@@ -1,0 +1,3 @@
+>> cat test_commands/7.txt | ./run_terminal_session | dos2unix
+@> cat test_data/gatsby.txt | tr -cs A-Za-z \n | tr A-Z a-z | sort | uniq -c | sort -rn | head -n 12
+exit

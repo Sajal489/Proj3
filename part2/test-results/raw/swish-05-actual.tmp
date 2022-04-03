@@ -1,0 +1,2 @@
+>> cat test_commands/5.txt | ./run_terminal_session | dos2unix
+@> cat  test_data/numbers.txt | sort -n | head -n 10 > out.txt
