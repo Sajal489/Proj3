@@ -37,21 +37,29 @@ int close_all(int *fds, int n) {
  * n_pipes: Length of the 'pipes' array
  * in_idx: Index of the file descriptor in the array from which the program
  *         should read its input, or -1 if input should not be read from a pipe.
- * out_idx: Index of the file descriptor int he array to which the program
+ * out_idx: Index of the file descriptor in the array to which the program
  *          should write its output, or -1 if output should not be written to
  *          a pipe.
  * Returns 0 on success or 1 on error.
  */
 int run_piped_command(strvec_t *tokens, int *pipes, int n_pipes, int in_idx, int out_idx) {
     // TODO Complete this function's implementation
+    close_all(pipes, n_pipes*2 - 2);
     if(out_idx != -1 && in_idx == -1){
+        close(pipes[out_idx - 1]);
         dup2(pipes[out_idx], STDOUT_FILENO);
+        close(pipes[out_idx]);
     }else if(out_idx == -1 && in_idx != -1){
-         dup2(pipes[in_idx], STDIN_FILENO);
+         if(close(pipes[in_idx]) == -1) perror("closed failed");
+         dup2(pipes[in_idx - 1], STDIN_FILENO);
+         close(pipes[in_idx - 1]);
     }else if(out_idx != -1 && in_idx != -1){
+        close(pipes[out_idx - 1]);
+        if(close(pipes[in_idx]) == -1) perror("closed failed");
         dup2(pipes[out_idx], STDOUT_FILENO);
-        dup2(pipes[in_idx], STDIN_FILENO);
+        dup2(pipes[in_idx-1], STDIN_FILENO);
     }else return 1;
+    
     run_command(tokens);
     return 0;
 }
@@ -92,13 +100,12 @@ int run_pipelined_commands(strvec_t *tokens) {
         pid_t pid = fork();
         if(pid == 0){
             if(i > 0 && i < n_pipes){
-               //i > 0 && i < n_pipes ? 2*(i-1) : i == 0 ? -1 : 2*i
-                run_piped_command(arr + i, pipes, 2*n_pipes, 2*(i-1), 2*i+1);
+                run_piped_command(arr + i, pipes, i, 2*i-1, 2*i+1);
             }else if(i == 0){
-                run_piped_command(arr + i, pipes, 2*n_pipes, -1, 2*i+1);
+                run_piped_command(arr + i, pipes, i, -1, 2*i+1);
             }else{
-                run_piped_command(arr + i, pipes, 2*n_pipes, 2*i, -1);
-            }     
+                run_piped_command(arr + i, pipes, i, 2*i-1, -1);
+            }    
         }else if(pid > 0){
             //parent
         }else{
@@ -106,8 +113,7 @@ int run_pipelined_commands(strvec_t *tokens) {
             exit(1);
         }
     }
-
-      close_all(pipes, 2*n_pipes);
+    close_all(pipes, 2*n_pipes);
       int status = 0;
       for(int i = 0; i < n_pipes+1; i++){
           wait(&status);
