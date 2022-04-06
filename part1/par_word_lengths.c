@@ -108,6 +108,7 @@ int main(int argc, char **argv) {
             exit(0);
         } else if (child_pid < 0) {
             perror("fork failed");
+            free(pipe_fds);
             return -1;
         
         } else {

@@ -44,23 +44,59 @@ int close_all(int *fds, int n) {
  */
 int run_piped_command(strvec_t *tokens, int *pipes, int n_pipes, int in_idx, int out_idx) {
     // TODO Complete this function's implementation
-    close_all(pipes, n_pipes*2 - 2);
+    if (close_all(pipes, n_pipes*2 - 2) == 1) {
+        perror("close_all");
+        return 1;
+    }
     if(out_idx != -1 && in_idx == -1){
-        close(pipes[out_idx - 1]);
-        dup2(pipes[out_idx], STDOUT_FILENO);
-        close(pipes[out_idx]);
+        if (close(pipes[out_idx - 1]) == -1) {
+            perror("close");
+            return 1;
+        }
+        if (dup2(pipes[out_idx], STDOUT_FILENO) == -1) {
+            perror("dup2");
+            return 1;
+        }
+        if (close(pipes[out_idx]) == -1) {
+            perror("close");
+            return 1;
+        }
     }else if(out_idx == -1 && in_idx != -1){
-         if(close(pipes[in_idx]) == -1) perror("closed failed");
-         dup2(pipes[in_idx - 1], STDIN_FILENO);
-         close(pipes[in_idx - 1]);
+         if(close(pipes[in_idx]) == -1) {
+             perror("closed failed");
+             return 1;
+         }
+         if (dup2(pipes[in_idx - 1], STDIN_FILENO) == -1) {
+             perror("dup2");
+             return 1;
+         }
+         if (close(pipes[in_idx - 1]) == -1) {
+             perror("close");
+             return 1;
+         }
     }else if(out_idx != -1 && in_idx != -1){
-        close(pipes[out_idx - 1]);
-        if(close(pipes[in_idx]) == -1) perror("closed failed");
-        dup2(pipes[out_idx], STDOUT_FILENO);
-        dup2(pipes[in_idx-1], STDIN_FILENO);
+        if (close(pipes[out_idx - 1]) == -1) {
+            perror("close failed");
+            return 1;
+        }
+        if(close(pipes[in_idx]) == -1) {
+            perror("closed failed");
+            return 1;
+        }
+        if (dup2(pipes[out_idx], STDOUT_FILENO) == -1) {
+            perror("dup2");
+            return 1;
+        }
+        if (dup2(pipes[in_idx-1], STDIN_FILENO) == -1) {
+            perror("dupe2");
+            return 1;
+        }
     }else return 1;
     
-    run_command(tokens);
+    if (run_command(tokens) == 1) {
+        perror("run_cmd");
+        return 1;
+    }
     return 0;
 }
 
@@ -69,30 +105,73 @@ int run_pipelined_commands(strvec_t *tokens) {
     int n_pipes = 0;
     int index = 0;
     for(int i = 0; i < tokens->length; i++){
-        if(strcmp(strvec_get(tokens, i), "|") == 0) n_pipes++;
+        char *temp = strvec_get(tokens, i);
+        if (temp == NULL) {
+            printf("strvec get failed");
+            return 1;
+        }
+        if(strcmp(temp, "|") == 0) n_pipes++;
     }
 
     strvec_t arr[n_pipes+1];
     strvec_t *temp = malloc(sizeof(strvec_t));
-    strvec_init(arr);
-    strvec_init(temp);
+    if (temp == NULL) {
+        perror("malloc");
+        return 1;
+    }
+    if (strvec_init(arr) == 1) {
+        printf("strvec init failed\n");
+        return 1;
+    }
+    if (strvec_init(temp) == 1) {
+        printf("strvec init failed\n");
+        return 1;
+    }
 
     for(int i = 0; i < tokens->length; i++){
-        if(strcmp(strvec_get(tokens, i), "|") == 0){
+        char *token = strvec_get(tokens, i);
+        if (token == NULL) {
+            printf("strvec get failed");
+            return 1;
+        }
+        if(strcmp(token, "|") == 0){
             arr[index++] = *temp;
             temp = malloc(sizeof(strvec_t));
-            strvec_init(temp);
+            if (temp == NULL) {
+                printf("2nd malloc failed\n");
+                return 1;
+            }
+            if (strvec_init(temp) == 1) {
+                printf("strvec init failed\n");
+                return 1;
+            }
 
         }else{
-            strvec_add(temp, strvec_get(tokens, i));
+            token = strvec_get(tokens, i);
+            if (token == NULL) {
+                printf("strvec get failed");
+                return 1;
+            }
+            if (strvec_add(temp, token) == 1) {
+                printf("strvec_add");
+                return 1;
+            }
         }
     }
     arr[index] = *temp;
 
     int *pipes = malloc(2 * (n_pipes) * sizeof(int));
+    if (pipes == NULL) {
+        perror("malloc");
+        return 1;
+    }
 
     for(int i = 0; i < n_pipes; i++){
-        pipe(pipes + 2*i);
+        if (pipe(pipes + 2*i) == 1) {
+            perror("pipe");
+            free(pipes);
+            return 1;
+        }
     }
 
 
@@ -100,23 +179,43 @@ int run_pipelined_commands(strvec_t *tokens) {
         pid_t pid = fork();
         if(pid == 0){
             if(i > 0 && i < n_pipes){
-                run_piped_command(arr + i, pipes, i, 2*i-1, 2*i+1);
+                if (run_piped_command(arr + i, pipes, i, 2*i-1, 2*i+1) == 1) {
+                    printf("run piped cmd");
+                    free(pipes);
+                    exit(1);
+                }
             }else if(i == 0){
-                run_piped_command(arr + i, pipes, i, -1, 2*i+1);
+                if (run_piped_command(arr + i, pipes, i, -1, 2*i+1) == 1) {
+                    printf("run piped cmd");
+                    free(pipes);
+                    exit(1);
+                }
             }else{
-                run_piped_command(arr + i, pipes, i, 2*i-1, -1);
+                if (run_piped_command(arr + i, pipes, i, 2*i-1, -1) == 1) {
+                    printf("run piped cmd");
+                    free(pipes);
+                    exit(1);
+                }
             }    
         }else if(pid > 0){
             //parent
         }else{
             perror("failed to fork child");
+            free(pipes);
             exit(1);
         }
     }
-    close_all(pipes, 2*n_pipes);
+    if (close_all(pipes, 2*n_pipes) == 1) {
+        printf("failed to close all pipes");
+        free(pipes);
+        return 1;
+    }
       int status = 0;
       for(int i = 0; i < n_pipes+1; i++){
-          wait(&status);
+          if (wait(&status) == -1) {
+              perror("wait");
+              return 1;
+          }
       }
       free(pipes);
     return 0;
