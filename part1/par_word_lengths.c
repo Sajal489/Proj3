@@ -26,7 +26,10 @@ int count_word_lengths(const char *file_name, int *counts, int max_len) {
         counts[strlen(words) - 1]++;
         memset(words, 0, sizeof(words)); // error check right?
     }
-    fclose(fh);
+    if (fclose(fh) != 0) {
+        perror("fclose");
+        return 1;
+    }
     return 0;
     
 }
@@ -41,12 +44,12 @@ int count_word_lengths(const char *file_name, int *counts, int max_len) {
  */
 int process_file(const char *file_name, int out_fd) {
     int *counts = malloc(sizeof(int) * MAX_WORD_LEN);
-    for (int i = 0; i < MAX_WORD_LEN; i++) {
-        counts[i] = 0;
-    }
     if (counts == NULL) {
         fprintf(stderr, "malloc failed\n");
         return 1;
+    }
+    for (int i = 0; i < MAX_WORD_LEN; i++) {
+        counts[i] = 0;
     }
     if (count_word_lengths(file_name, counts, MAX_WORD_LEN) == 1) {
         perror("count word lenghts");
@@ -85,16 +88,28 @@ int main(int argc, char **argv) {
         // error checking here for ^^
         if (child_pid == 0) { // child process
             for (int j = 0; j <= i; j++) { // close read end of all previous pipes
-                close(pipe_fds[2*j]);
+                if (close(pipe_fds[2*j]) != 0) {
+                    perror("close pipe");
+                    free(pipe_fds);
+                    exit(1);
+                }
             }
             if (process_file(argv[i+1], pipe_fds[2 * i + 1]) == 1) { // count word lengths for given file
                 perror("process_file");
                 free(pipe_fds);
                 exit(1); // should exit code 1 if in child fails
             }
-            close(pipe_fds[2 * i + 1]); // close pipe child just wrote to
+            if (close(pipe_fds[2 * i + 1]) != 0) { // close pipe child just wrote to
+                perror("close pipe");
+                free(pipe_fds);
+                exit(1);
+            } 
             free(pipe_fds);
             exit(0);
+        } else if (child_pid < 0) {
+            perror("fork failed");
+            return -1;
+        
         } else {
             close(pipe_fds[2*i+1]);
         } 
@@ -102,7 +117,7 @@ int main(int argc, char **argv) {
 
     // TODO Aggregate all the results together by reading from pipes in the parent
     int results[MAX_WORD_LEN]; // final output 
-    memset(results, 0, sizeof(results)); // error check?
+    memset(results, 0, sizeof(results)); // void cuz never fails
     int temp_results[MAX_WORD_LEN]; // read in the counts arrays and store them in here. need to initialize w/ 0s
     for (int i = 0; i < argc - 1; i++) {
         memset(temp_results, 0, sizeof(temp_results));
